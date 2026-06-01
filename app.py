@@ -1,24 +1,24 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from pyproj import Transformer
 
 app = Flask(__name__)
+CORS(app)
 
-# Lambert Maroc Nord (EPSG le plus utilisé)
-transformer = Transformer.from_crs("EPSG:26191", "EPSG:4326", always_xy=True)
+transformer = Transformer.from_crs(
+    "EPSG:26191", "EPSG:4326", always_xy=True
+)
 
 @app.route("/convert", methods=["POST"])
 def convert():
-    data = request.json
-
-    x = float(data["x"])
-    y = float(data["y"])
-
-    lon, lat = transformer.transform(x, y)
-
-    return jsonify({
-        "lat": lat,
-        "lng": lon
-    })
+    try:
+        data = request.json
+        x = float(data["x"])
+        y = float(data["y"])
+        lon, lat = transformer.transform(x, y)
+        return jsonify({"lat": lat, "lng": lon})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route("/")
 def home():
